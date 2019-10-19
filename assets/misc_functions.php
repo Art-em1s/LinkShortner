@@ -91,7 +91,7 @@
     
     function rateLimit(){ //to-do: currently not working, fix to prevent spam
         if (isset($_SESSION['LAST_CALL'])) {
-            $last = strtotime($_SESSION['LAST_CALL']);
+            $last = $_SESSION['LAST_CALL'];
             $delta = abs($last - time());
             if ($delta <= 1) {
                 echo returnAPI("Error", "Rate Limit Exceeded.");
