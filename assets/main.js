@@ -3,6 +3,8 @@ function putRedirect() {
     if (a == '') {
         alert("Please enter a URL to shorten.");
         return
+    } else if (!a.startsWith('https://') || !a.startsWith('http://')){
+        a="https://"+a; //reduce errors due to users not including https/http
     }
     var data = null;
     var xhr = new XMLHttpRequest();

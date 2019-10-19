@@ -28,6 +28,22 @@
         return json_encode(array($key=>$value));
     }
     
+    function verifyURL($input){
+        if (strlen($input)<3){
+            echo returnAPI("Error", "Invalid URL. Please double check the URL. The URL provided is too short.");
+            exit;
+        }
+        if ($input == "%20"){
+            echo returnAPI("Error", "Invalid URL. Please double check the URL. A space isn't a URL.");
+            exit;
+        }
+        
+        if (!filter_var($input, FILTER_VALIDATE_URL)) {
+            echo returnAPI("Error", "Invalid URL. Please double check the URL. Be sure to include 'https://' or 'http://' at the start.");
+            exit;
+        }
+    }
+    
     function getRedirect($input){
         global $dbLocation;
         $db = new SQLite3($dbLocation);
@@ -48,19 +64,28 @@
         global $dbLocation;
         
         //to-do check for url already existing, return existing short if possible, reduce entries into db
-        
-        //needs url verification here JIC
-        $redirectURL = substr(str_shuffle(MD5(microtime())), 0, 10);
         $db = new SQLite3($dbLocation);
-        $stmt = $db->prepare("INSERT INTO url (time, short_url, redirect) VALUES (?, ?, ?)");
-        $stmt->bindValue(1, time(), SQLITE3_TEXT);
-        $stmt->bindValue(2, $redirectURL, SQLITE3_TEXT);
-        $stmt->bindValue(3, $input, SQLITE3_TEXT);
-        $stmt->execute();
+        $stmt = $db->prepare("select short_url from url where redirect = ?");
+        $stmt->bindValue(1, $input, SQLITE3_TEXT);
+        $result = $stmt->execute();
+        $row = $result->fetchArray();
         $db->close();
         $db = NULL;
-        
-        return returnAPI("URL", $redirectURL);
+        if (empty($row)){
+            $redirectURL = substr(str_shuffle(MD5(microtime())), 0, 10);
+            $db = new SQLite3($dbLocation);
+            $stmt = $db->prepare("INSERT INTO url (time, short_url, redirect) VALUES (?, ?, ?)");
+            $stmt->bindValue(1, time(), SQLITE3_TEXT);
+            $stmt->bindValue(2, $redirectURL, SQLITE3_TEXT);
+            $stmt->bindValue(3, $input, SQLITE3_TEXT);
+            $stmt->execute();
+            $db->close();
+            $db = NULL;
+            return returnAPI("URL", $redirectURL);
+        } else {
+            return returnAPI("URL", $row['short_url']);
+        }
+
         //to-do: error logging here to check if the insert fails
     }
     
@@ -85,19 +110,4 @@
         ini_set('log_errors_max_len', 1024);
     }
     
-    function verifyURL($input){
-        if (strlen($input)<3){
-            echo returnAPI("Error", "Invalid URL. Please double check the URL. The URL provided is too short.");
-            exit;
-        }
-        if ($input == "%20"){
-            echo returnAPI("Error", "Invalid URL. Please double check the URL. A space isn't a URL.");
-            exit;
-        }
-        
-        if (!filter_var($input, FILTER_VALIDATE_URL)) {
-            echo returnAPI("Error", "Invalid URL. Please double check the URL. Be sure to include 'https://' or 'http://' at the start.");
-            exit;
-        }
-    }
 ?>
