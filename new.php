@@ -6,7 +6,6 @@ require_once('assets/misc_functions.php');
 
 logErrors();
 logUserVisit();
-rateLimit();
 
 echo("
 <html lang='en'>

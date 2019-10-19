@@ -7,7 +7,6 @@ require_once('assets/misc_functions.php');
 
 logErrors();
 logUserVisit();
-rateLimit();
 
 if (isset($_GET['a'])){
     $redirect = "https://w1z0.xyz/short/api/getRedirect.php?a=".$_GET['a'];
